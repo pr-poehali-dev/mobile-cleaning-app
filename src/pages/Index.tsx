@@ -28,11 +28,14 @@ const KITCHEN_ITEMS = [
 ];
 
 const HOME_ITEMS = [
-  { id: "floors", icon: "Waves", title: "Помыть полы", desc: "Влажная уборка всех напольных покрытий в помещении", price: 1000 },
-  { id: "dust", icon: "Wind", title: "Протереть пыль", desc: "Протирка поверхностей, полок, техники и мебели", price: 600 },
-  { id: "dishes", icon: "UtensilsCrossed", title: "Помыть посуду", desc: "Ручная мойка накопившейся посуды и кухонной утвари", price: 300 },
-  { id: "toilet", icon: "Droplet", title: "Помыть унитаз", desc: "Дезинфекция и чистка унитаза, бачка и ободка", price: 500 },
-  { id: "bath", icon: "Bath", title: "Помыть ванну", desc: "Чистка ванны или душевой кабины от налёта и известкового осадка", price: 500 },
+  { id: "floors",     icon: "Footprints",      title: "Помыть полы",         price: 1000 },
+  { id: "dust",       icon: "Wind",             title: "Протереть пыль",      price: 600  },
+  { id: "chandelier", icon: "Lightbulb",        title: "Помыть люстру",       price: 200  },
+  { id: "dishes",     icon: "UtensilsCrossed",  title: "Помыть посуду",       price: 300  },
+  { id: "microwave",  icon: "Zap",              title: "Помыть микроволновку", price: 500 },
+  { id: "stove",      icon: "Flame",            title: "Помыть плиту",        price: 400  },
+  { id: "oven",       icon: "Square",           title: "Помыть духовку",      price: 400  },
+  { id: "fridge",     icon: "Thermometer",      title: "Помыть холодильник",  price: 1000 },
 ];
 
 const ORDERS = [
@@ -72,6 +75,7 @@ export default function Index() {
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
   const [selectedKitchen, setSelectedKitchen] = useState<string[]>([]);
   const [selectedHome, setSelectedHome] = useState<string[]>([]);
+  const [homeModalOpen, setHomeModalOpen] = useState(false);
 
   const toggleKitchen = (id: string) => {
     setSelectedKitchen((prev) =>
@@ -100,12 +104,18 @@ export default function Index() {
     navigate("booking");
   };
 
-  const openHomeBooking = () => {
+  const openHomeModal = () => {
+    setSelectedHome([]);
+    setHomeModalOpen(true);
+  };
+
+  const confirmHomeBooking = () => {
     if (selectedHome.length === 0) return;
     const names = HOME_ITEMS.filter((i) => selectedHome.includes(i.id)).map((i) => i.title).join(", ");
     setSelectedService(names);
     setBookingStep(2);
     setBookingSubmitted(false);
+    setHomeModalOpen(false);
     navigate("booking");
   };
 
@@ -374,7 +384,10 @@ export default function Index() {
                   </div>
                   <div className="px-6 py-4 border-t border-border flex items-center justify-between bg-secondary/40">
                     <span className="font-montserrat font-extrabold text-navy text-lg">{s.price}</span>
-                    <button onClick={() => openBooking(s.title)} className="bg-navy text-white text-sm font-montserrat font-bold px-5 py-2 rounded hover:bg-navy-light transition-colors">
+                    <button
+                      onClick={() => s.title === "Жилые помещения" ? openHomeModal() : openBooking(s.title)}
+                      className="bg-navy text-white text-sm font-montserrat font-bold px-5 py-2 rounded hover:bg-navy-light transition-colors"
+                    >
                       Заказать
                     </button>
                   </div>
@@ -929,6 +942,90 @@ export default function Index() {
           </div>
         </div>
       </footer>
+
+      {/* ── Home Services Modal ── */}
+      {homeModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setHomeModalOpen(false)} />
+          <div className="relative bg-white rounded-lg shadow-2xl w-full max-w-lg animate-fade-in flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="bg-navy px-6 py-5 rounded-t-lg flex items-center justify-between flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-teal/20 rounded flex items-center justify-center">
+                  <Icon name="Home" size={18} className="text-teal" />
+                </div>
+                <div>
+                  <h3 className="font-montserrat font-bold text-white text-lg">Жилые помещения</h3>
+                  <p className="text-white/50 text-xs">Выберите что нужно сделать</p>
+                </div>
+              </div>
+              <button onClick={() => setHomeModalOpen(false)} className="text-white/50 hover:text-white transition-colors">
+                <Icon name="X" size={20} />
+              </button>
+            </div>
+
+            {/* Items */}
+            <div className="p-5 overflow-y-auto flex-1">
+              <div className="space-y-2">
+                {HOME_ITEMS.map((item) => {
+                  const active = selectedHome.includes(item.id);
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => toggleHome(item.id)}
+                      className={`w-full flex items-center justify-between px-4 py-3.5 border-2 rounded transition-all ${
+                        active ? "border-teal bg-teal/5" : "border-border hover:border-navy/30 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded flex items-center justify-center flex-shrink-0 transition-colors ${active ? "bg-teal" : "bg-navy/10"}`}>
+                          <Icon name={item.icon} size={15} className={active ? "text-white" : "text-navy"} />
+                        </div>
+                        <span className={`font-montserrat font-semibold text-sm ${active ? "text-teal" : "text-navy"}`}>
+                          {item.title}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className={`font-montserrat font-bold text-sm ${active ? "text-teal" : "text-muted-foreground"}`}>
+                          {item.price} ₽
+                        </span>
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
+                          active ? "bg-teal border-teal" : "border-border"
+                        }`}>
+                          {active && <Icon name="Check" size={11} className="text-white" />}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-4 border-t border-border bg-secondary/40 rounded-b-lg flex-shrink-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  {selectedHome.length > 0 ? (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-0.5">{selectedHome.length} позиц.</div>
+                      <span className="font-montserrat font-extrabold text-navy text-xl">{homeTotal} ₽</span>
+                    </div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Ничего не выбрано</span>
+                  )}
+                </div>
+                <button
+                  onClick={confirmHomeBooking}
+                  disabled={selectedHome.length === 0}
+                  className="bg-teal hover:bg-teal-light text-white font-montserrat font-bold px-8 py-3 rounded disabled:opacity-40 transition-colors"
+                >
+                  Далее →
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
