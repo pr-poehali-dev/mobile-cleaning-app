@@ -21,6 +21,12 @@ const SERVICES = [
   { icon: "Sparkles", title: "Химчистка мебели", desc: "Глубокая чистка диванов, кресел, матрасов и ковров", price: "от 1 200 ₽", tag: "" },
 ];
 
+const KITCHEN_ITEMS = [
+  { id: "stove", icon: "Flame", title: "Помыть плиту", desc: "Чистка конфорок, решёток, поверхности и ручек плиты", price: 800, unit: "₽" },
+  { id: "oven", icon: "Square", title: "Помыть духовку", desc: "Удаление нагара с духовки, противней и стекла дверцы", price: 1200, unit: "₽" },
+  { id: "microwave", icon: "Zap", title: "Помыть микроволновку", desc: "Чистка камеры, поддона и наружных поверхностей", price: 500, unit: "₽" },
+];
+
 const ORDERS = [
   { id: "ORD-2841", service: "Офисный клининг", address: "ул. Тверская, 18", date: "05 апр 2026", status: "active", master: "Елена К." },
   { id: "ORD-2835", service: "Мойка окон", address: "Ленинский пр., 45", date: "03 апр 2026", status: "done", master: "Михаил П." },
@@ -56,6 +62,25 @@ export default function Index() {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
+  const [selectedKitchen, setSelectedKitchen] = useState<string[]>([]);
+
+  const toggleKitchen = (id: string) => {
+    setSelectedKitchen((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
+  const kitchenTotal = KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id))
+    .reduce((sum, i) => sum + i.price, 0);
+
+  const openKitchenBooking = () => {
+    if (selectedKitchen.length === 0) return;
+    const names = KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id)).map((i) => i.title).join(", ");
+    setSelectedService(names);
+    setBookingStep(2);
+    setBookingSubmitted(false);
+    navigate("booking");
+  };
 
   const navigate = (section: Section) => {
     setActiveSection(section);
@@ -268,6 +293,74 @@ export default function Index() {
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Kitchen cleaning block */}
+            <div className="mt-10 bg-card border border-border rounded overflow-hidden">
+              <div className="bg-navy px-6 py-5 flex items-center gap-3">
+                <div className="w-10 h-10 bg-teal/20 rounded flex items-center justify-center">
+                  <Icon name="Utensils" size={20} className="text-teal" />
+                </div>
+                <div>
+                  <h3 className="font-montserrat font-bold text-white text-lg">Кухонная техника</h3>
+                  <p className="text-white/50 text-sm">Выберите одно или несколько — оплата только за выбранное</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  {KITCHEN_ITEMS.map((item) => {
+                    const active = selectedKitchen.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleKitchen(item.id)}
+                        className={`p-5 border-2 rounded text-left transition-all relative ${
+                          active
+                            ? "border-teal bg-teal/5 ring-1 ring-teal"
+                            : "border-border hover:border-navy/30 bg-white"
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute top-3 right-3 w-5 h-5 bg-teal rounded-full flex items-center justify-center">
+                            <Icon name="Check" size={12} className="text-white" />
+                          </div>
+                        )}
+                        <div className={`w-10 h-10 rounded flex items-center justify-center mb-3 ${active ? "bg-teal" : "bg-navy"}`}>
+                          <Icon name={item.icon} size={18} className="text-white" />
+                        </div>
+                        <div className="font-montserrat font-bold text-navy text-sm mb-1">{item.title}</div>
+                        <p className="text-muted-foreground text-xs leading-relaxed mb-3">{item.desc}</p>
+                        <div className={`font-montserrat font-extrabold text-lg ${active ? "text-teal" : "text-navy"}`}>
+                          {item.price} ₽
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-border">
+                  <div>
+                    {selectedKitchen.length > 0 ? (
+                      <div>
+                        <span className="text-sm text-muted-foreground">Итого за выбранное: </span>
+                        <span className="font-montserrat font-extrabold text-navy text-xl">{kitchenTotal} ₽</span>
+                        <div className="text-xs text-muted-foreground mt-0.5">
+                          {KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id)).map((i) => i.title).join(" + ")}
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Выберите хотя бы одну позицию</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={openKitchenBooking}
+                    disabled={selectedKitchen.length === 0}
+                    className="bg-teal hover:bg-teal-light text-white font-montserrat font-bold px-8 py-3 rounded disabled:opacity-40 transition-colors whitespace-nowrap"
+                  >
+                    Заказать за {kitchenTotal > 0 ? `${kitchenTotal} ₽` : "..."}
+                  </button>
+                </div>
+              </div>
             </div>
           </section>
         )}
