@@ -245,6 +245,66 @@ export default function Index() {
               </div>
             </section>
 
+            {/* Kitchen quick order */}
+            <section className="py-16 bg-secondary/50">
+              <div className="container mx-auto px-4 lg:px-8">
+                <div className="mb-10">
+                  <div className="w-12 h-0.5 bg-teal mb-4" />
+                  <h2 className="font-montserrat font-extrabold text-3xl text-navy mb-2">Кухонная техника</h2>
+                  <p className="text-muted-foreground">Выберите что нужно помыть — оплата только за выбранное</p>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                  {KITCHEN_ITEMS.map((item) => {
+                    const active = selectedKitchen.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleKitchen(item.id)}
+                        className={`p-6 border-2 rounded text-left transition-all relative bg-white ${
+                          active ? "border-teal ring-1 ring-teal bg-teal/5" : "border-border hover:border-navy/30"
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute top-4 right-4 w-6 h-6 bg-teal rounded-full flex items-center justify-center">
+                            <Icon name="Check" size={13} className="text-white" />
+                          </div>
+                        )}
+                        <div className={`w-12 h-12 rounded flex items-center justify-center mb-4 transition-colors ${active ? "bg-teal" : "bg-navy"}`}>
+                          <Icon name={item.icon} size={22} className="text-white" />
+                        </div>
+                        <div className="font-montserrat font-bold text-navy text-base mb-1">{item.title}</div>
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">{item.desc}</p>
+                        <div className={`font-montserrat font-extrabold text-2xl ${active ? "text-teal" : "text-navy"}`}>
+                          {item.price} ₽
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white border border-border rounded p-5">
+                  <div>
+                    {selectedKitchen.length > 0 ? (
+                      <div>
+                        <div className="text-sm text-muted-foreground mb-0.5">
+                          {KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id)).map((i) => i.title).join(" + ")}
+                        </div>
+                        <span className="font-montserrat font-extrabold text-navy text-2xl">Итого: {kitchenTotal} ₽</span>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground">Отметьте нужные позиции выше</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={openKitchenBooking}
+                    disabled={selectedKitchen.length === 0}
+                    className="bg-teal hover:bg-teal-light text-white font-montserrat font-bold px-10 py-3.5 rounded disabled:opacity-40 transition-colors whitespace-nowrap"
+                  >
+                    Заказать {kitchenTotal > 0 ? `за ${kitchenTotal} ₽` : ""}
+                  </button>
+                </div>
+              </div>
+            </section>
+
             {/* CTA */}
             <section className="bg-navy text-white py-16">
               <div className="container mx-auto px-4 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
