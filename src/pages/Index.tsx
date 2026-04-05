@@ -27,6 +27,14 @@ const KITCHEN_ITEMS = [
   { id: "microwave", icon: "Zap", title: "Помыть микроволновку", desc: "Чистка камеры, поддона и наружных поверхностей", price: 500, unit: "₽" },
 ];
 
+const HOME_ITEMS = [
+  { id: "floors", icon: "Waves", title: "Помыть полы", desc: "Влажная уборка всех напольных покрытий в помещении", price: 1000 },
+  { id: "dust", icon: "Wind", title: "Протереть пыль", desc: "Протирка поверхностей, полок, техники и мебели", price: 600 },
+  { id: "dishes", icon: "UtensilsCrossed", title: "Помыть посуду", desc: "Ручная мойка накопившейся посуды и кухонной утвари", price: 300 },
+  { id: "toilet", icon: "Droplet", title: "Помыть унитаз", desc: "Дезинфекция и чистка унитаза, бачка и ободка", price: 500 },
+  { id: "bath", icon: "Bath", title: "Помыть ванну", desc: "Чистка ванны или душевой кабины от налёта и известкового осадка", price: 500 },
+];
+
 const ORDERS = [
   { id: "ORD-2841", service: "Офисный клининг", address: "ул. Тверская, 18", date: "05 апр 2026", status: "active", master: "Елена К." },
   { id: "ORD-2835", service: "Мойка окон", address: "Ленинский пр., 45", date: "03 апр 2026", status: "done", master: "Михаил П." },
@@ -63,6 +71,7 @@ export default function Index() {
   const [selectedTime, setSelectedTime] = useState("");
   const [bookingSubmitted, setBookingSubmitted] = useState(false);
   const [selectedKitchen, setSelectedKitchen] = useState<string[]>([]);
+  const [selectedHome, setSelectedHome] = useState<string[]>([]);
 
   const toggleKitchen = (id: string) => {
     setSelectedKitchen((prev) =>
@@ -70,12 +79,30 @@ export default function Index() {
     );
   };
 
+  const toggleHome = (id: string) => {
+    setSelectedHome((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+    );
+  };
+
   const kitchenTotal = KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id))
+    .reduce((sum, i) => sum + i.price, 0);
+
+  const homeTotal = HOME_ITEMS.filter((i) => selectedHome.includes(i.id))
     .reduce((sum, i) => sum + i.price, 0);
 
   const openKitchenBooking = () => {
     if (selectedKitchen.length === 0) return;
     const names = KITCHEN_ITEMS.filter((i) => selectedKitchen.includes(i.id)).map((i) => i.title).join(", ");
+    setSelectedService(names);
+    setBookingStep(2);
+    setBookingSubmitted(false);
+    navigate("booking");
+  };
+
+  const openHomeBooking = () => {
+    if (selectedHome.length === 0) return;
+    const names = HOME_ITEMS.filter((i) => selectedHome.includes(i.id)).map((i) => i.title).join(", ");
     setSelectedService(names);
     setBookingStep(2);
     setBookingSubmitted(false);
@@ -355,8 +382,72 @@ export default function Index() {
               ))}
             </div>
 
+            {/* Home cleaning block */}
+            <div className="mt-8 bg-card border border-border rounded overflow-hidden">
+              <div className="bg-navy px-6 py-5 flex items-center gap-3">
+                <div className="w-10 h-10 bg-teal/20 rounded flex items-center justify-center">
+                  <Icon name="Home" size={20} className="text-teal" />
+                </div>
+                <div>
+                  <h3 className="font-montserrat font-bold text-white text-lg">Жилые помещения</h3>
+                  <p className="text-white/50 text-sm">Выберите нужные позиции — оплата только за выбранное</p>
+                </div>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+                  {HOME_ITEMS.map((item) => {
+                    const active = selectedHome.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => toggleHome(item.id)}
+                        className={`p-4 border-2 rounded text-left transition-all relative ${
+                          active ? "border-teal bg-teal/5 ring-1 ring-teal" : "border-border hover:border-navy/30"
+                        }`}
+                      >
+                        {active && (
+                          <div className="absolute top-3 right-3 w-5 h-5 bg-teal rounded-full flex items-center justify-center">
+                            <Icon name="Check" size={12} className="text-white" />
+                          </div>
+                        )}
+                        <div className={`w-9 h-9 rounded flex items-center justify-center mb-3 ${active ? "bg-teal" : "bg-navy"}`}>
+                          <Icon name={item.icon} size={16} className="text-white" />
+                        </div>
+                        <div className="font-montserrat font-bold text-navy text-sm mb-1">{item.title}</div>
+                        <p className="text-muted-foreground text-xs leading-relaxed mb-2">{item.desc}</p>
+                        <div className={`font-montserrat font-extrabold text-lg ${active ? "text-teal" : "text-navy"}`}>
+                          {item.price} ₽
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-5 border-t border-border">
+                  <div>
+                    {selectedHome.length > 0 ? (
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-0.5">
+                          {HOME_ITEMS.filter((i) => selectedHome.includes(i.id)).map((i) => i.title).join(" + ")}
+                        </div>
+                        <span className="font-montserrat font-extrabold text-navy text-xl">Итого: {homeTotal} ₽</span>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-muted-foreground">Выберите хотя бы одну позицию</span>
+                    )}
+                  </div>
+                  <button
+                    onClick={openHomeBooking}
+                    disabled={selectedHome.length === 0}
+                    className="bg-teal hover:bg-teal-light text-white font-montserrat font-bold px-8 py-3 rounded disabled:opacity-40 transition-colors whitespace-nowrap"
+                  >
+                    Заказать за {homeTotal > 0 ? `${homeTotal} ₽` : "..."}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Kitchen cleaning block */}
-            <div className="mt-10 bg-card border border-border rounded overflow-hidden">
+            <div className="mt-6 bg-card border border-border rounded overflow-hidden">
               <div className="bg-navy px-6 py-5 flex items-center gap-3">
                 <div className="w-10 h-10 bg-teal/20 rounded flex items-center justify-center">
                   <Icon name="Utensils" size={20} className="text-teal" />
